@@ -2,8 +2,6 @@
 /**
 * Name:  Ion Auth
 *
-* Version: 2.5.2
-*
 * Author: Ben Edmunds
 *		  ben.edmunds@gmail.com
 *         @benedmunds
@@ -54,9 +52,8 @@ class Ion_auth
 	/**
 	 * __construct
 	 *
-	 * @return void
 	 * @author Ben
-	 **/
+	 */
 	public function __construct()
 	{
 		$this->load->config('ion_auth', TRUE);
@@ -91,7 +88,11 @@ class Ion_auth
 	 *
 	 * Acts as a simple way to call model methods without loads of stupid alias'
 	 *
-	 **/
+	 * @param $method
+	 * @param $arguments
+	 * @return mixed
+	 * @throws Exception
+	 */
 	public function __call($method, $arguments)
 	{
 		if (!method_exists( $this->ion_auth_model, $method) )
@@ -129,9 +130,10 @@ class Ion_auth
 	/**
 	 * forgotten password feature
 	 *
-	 * @return mixed  boolian / array
+	 * @param $identity
+	 * @return mixed boolean / array
 	 * @author Mathew
-	 **/
+	 */
 	public function forgotten_password($identity)    //changed $email to $identity
 	{
 		if ( $this->ion_auth_model->forgotten_password($identity) )   //changed
@@ -189,9 +191,10 @@ class Ion_auth
 	/**
 	 * forgotten_password_complete
 	 *
-	 * @return void
+	 * @param $code
 	 * @author Mathew
-	 **/
+	 * @return bool
+	 */
 	public function forgotten_password_complete($code)
 	{
 		$this->ion_auth_model->trigger_events('pre_password_change');
@@ -253,9 +256,10 @@ class Ion_auth
 	/**
 	 * forgotten_password_check
 	 *
-	 * @return void
+	 * @param $code
 	 * @author Michael
-	 **/
+	 * @return bool
+	 */
 	public function forgotten_password_check($code)
 	{
 		$profile = $this->where('forgotten_password_code', $code)->users()->row(); //pass the code to profile
@@ -284,19 +288,24 @@ class Ion_auth
 	/**
 	 * register
 	 *
-	 * @return void
+	 * @param $identity
+	 * @param $password
+	 * @param $email
+	 * @param array $additional_data
+	 * @param array $group_ids
 	 * @author Mathew
-	 **/
+	 * @return bool
+	 */
 	public function register($identity, $password, $email, $additional_data = array(), $group_ids = array()) //need to test email activation
 	{
 		$this->ion_auth_model->trigger_events('pre_account_creation');
 
 		$email_activation = $this->config->item('email_activation', 'ion_auth');
-		
+
 		$id = $this->ion_auth_model->register($identity, $password, $email, $additional_data, $group_ids);
 
 		if (!$email_activation)
-		{	
+		{
 			if ($id !== FALSE)
 			{
 				$this->set_message('account_creation_successful');
@@ -414,6 +423,9 @@ class Ion_auth
 		}
 		else
 		{
+			if (version_compare(PHP_VERSION, '7.0.0') >= 0) {
+				session_start();
+			}
 			$this->session->sess_regenerate(TRUE);
 		}
 
